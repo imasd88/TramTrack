@@ -7,6 +7,17 @@ import java.util.concurrent.TimeUnit;
 
 public class Utils {
 
+    private static Utils utils;
+
+    private Utils() {
+    }
+
+    public static Utils getInstance() {
+        if (utils == null) {
+            utils = new Utils();
+        }
+        return utils;
+    }
 
     /////////////
     // Convert .NET Date to Date
@@ -39,6 +50,8 @@ public class Utils {
             long remainingHours = remainingTime / 60; //convert to hour
             long remainingMins = remainingTime % 60; //convert to min
             simpleTime.append(" (").append(remainingHours).append("hr").append(remainingMins).append("min)"); //append time as (xxhrxxmin) to simpleTime
+        } else if (remainingTime == 0) {
+            simpleTime.append(" (").append("now").append(")"); //append time as (now)
         } else { //else
             simpleTime.append(" (").append(remainingTime).append("min)"); //append time as (xxmin)
         }
