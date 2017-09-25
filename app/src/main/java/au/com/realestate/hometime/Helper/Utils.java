@@ -43,7 +43,7 @@ public class Utils {
             simpleTime.append(" (").append(remainingTime).append("min)"); //append time as (xxmin)
         }
 
-        return simpleTime + "";
+        return simpleTime.toString();
     }
 
 

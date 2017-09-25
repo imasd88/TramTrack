@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TramTrack</string>
+    <string name="north">NORTH</string>
+    <string name="south">SOUTH</string>
+    <string name="route">Route</string>
+    <string name="time">Time</string>
+    <string name="clear">Clear</string>
+    <string name="refresh">Refresh</string>
+</resources>
