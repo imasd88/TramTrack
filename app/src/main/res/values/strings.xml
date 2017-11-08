@@ -6,4 +6,6 @@
     <string name="time">Time</string>
     <string name="clear">Clear</string>
     <string name="refresh">Refresh</string>
+    <string name="am">AM</string>
+    <string name="sat_sep_23">Sat, Sep 23</string>
 </resources>

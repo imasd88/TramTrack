@@ -30,11 +30,18 @@ dependencies {
 
     compile "com.squareup.retrofit2:retrofit:$retrofit_version"
     compile "com.squareup.retrofit2:converter-moshi:$retrofit_version"
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.3.0'
 
+    //compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.0.0-RC1'
+    compile group: 'io.reactivex', name: 'rxandroid', version: '1.2.1'
 
     testCompile 'junit:junit:4.12'
+
+    compile 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+
 }
 
 buildscript {
-    ext.retrofit_version = '2.2.0'
+    ext.retrofit_version = '2.3.0'
 }

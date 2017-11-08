@@ -6,94 +6,83 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
-import au.com.realestate.hometime.Helper.RequestToken;
-import au.com.realestate.hometime.Helper.RequestTrams;
-import au.com.realestate.hometime.Helper.TramsApi;
+import au.com.realestate.hometime.helper.RequestToken;
+import au.com.realestate.hometime.helper.RequestTrams;
 import au.com.realestate.hometime.models.Tram;
-import retrofit2.Retrofit;
-import retrofit2.converter.moshi.MoshiConverterFactory;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity {
 
-    private List<Tram> southTrams;
-    private List<Tram> northTrams;
-
-    private RecyclerView northRecyclerView, southRecyclerView;
+public class MainActivity extends AppCompatActivity implements RequestTrams.TramsListener {
+    @BindView(R.id.recyclerView)
+    RecyclerView northRecyclerView;
+    @BindView(R.id.progressBar)
+    ProgressBar progressBar;
+    private List<Tram> trams = new ArrayList<>();
+    private String mToken;
+    private TramAdapter adapter;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+        this.initialize();
+    }
 
-        northRecyclerView = (RecyclerView) findViewById(R.id.recyclerViewNorth);
-        southRecyclerView = (RecyclerView) findViewById(R.id.recyclerViewSouth);
-
-
-        RecyclerView.LayoutManager layoutManagerNorth = new LinearLayoutManager(getApplicationContext());
-        northRecyclerView.setLayoutManager(layoutManagerNorth);
+    public void initialize() {
+        northRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         northRecyclerView.setItemAnimator(new DefaultItemAnimator());
-
-        RecyclerView.LayoutManager layoutManagerSouth = new LinearLayoutManager(getApplicationContext());
-        southRecyclerView.setLayoutManager(layoutManagerSouth);
-        southRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        adapter = new TramAdapter(this, trams);
+        northRecyclerView.setAdapter(adapter);
         this.updateTime();
     }
 
-    public void refreshClick(View view) {
-        if (!updateTime())
-            Toast.makeText(getApplicationContext(), "Tram's time is not currently available!\n" +
-                    "Please check later.", Toast.LENGTH_SHORT).show();
+    @OnClick(R.id.refreshButton)
+    public void refreshClick() {
+        updateTime();
     }
 
-    private boolean updateTime() {
-        TramsApi tramsApi = createApiClient();
-        try {
-            String token = new RequestToken(tramsApi).execute("").get();
-            this.northTrams = new RequestTrams(tramsApi, token).execute("4055").get();
-            this.southTrams = new RequestTrams(tramsApi, token).execute("4155").get();
-            showTrams();
-            return true;
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+    private void updateTime() {
+        progressBar.setVisibility(View.VISIBLE);
+        new RequestToken(this);
+    }
+
+    @OnClick(R.id.clearButton)
+    public void clearClick() {
+        trams.clear();
+        northRecyclerView.getAdapter().notifyDataSetChanged();
+    }
+
+
+    @Override
+    public void onTramsLoaded(List<Tram> mTrams, boolean northTrams) {
+        progressBar.setVisibility(View.GONE);
+        if (northTrams) {
+            trams.clear();
+            new RequestTrams(mToken, false, this);
         }
-        return false;
+        trams.addAll(mTrams);
+        adapter.notifyDataSetChanged();
     }
 
-    public void clearClick(View view) {
-        northTrams = new ArrayList<>();
-        southTrams = new ArrayList<>();
-        showTrams();
+    @Override
+    public void onError(String error) {
+        Toast.makeText(getApplicationContext(), error, Toast.LENGTH_SHORT).show();
+        findViewById(R.id.progressBar).setVisibility(View.GONE);
     }
 
-    private void showTrams() {
-        TramAdapter adapter = new TramAdapter(northTrams);
-        northRecyclerView.setAdapter(adapter);
-
-        adapter = new TramAdapter(southTrams);
-        southRecyclerView.setAdapter(adapter);
-    }
-
-
-    ////////////
-    // API
-    ////////////
-
-    private TramsApi createApiClient() {
-
-        String BASE_URL = "http://ws3.tramtracker.com.au";
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(MoshiConverterFactory.create())
-                .build();
-
-        return retrofit.create(TramsApi.class);
+    @Override
+    public void onTokenRefreshed(String token) {
+        mToken = token;
+        new RequestTrams(token, true, this);
     }
 }
